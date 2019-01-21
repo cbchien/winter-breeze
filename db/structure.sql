@@ -1,3 +1,9 @@
+DROP TABLE IF EXISTS users cascade;
+DROP TABLE IF EXISTS companies cascade;
+DROP TABLE IF EXISTS listings cascade;
+DROP TABLE IF EXISTS teams cascade;
+DROP TABLE IF EXISTS applications cascade;
+
 CREATE TABLE users (
 	id integer PRIMARY KEY,
 	created_at timestamp with time zone DEFAULT now(),

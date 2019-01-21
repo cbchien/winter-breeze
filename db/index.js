@@ -1,15 +1,16 @@
 const pg = require('pg')
-// const dotenv = require('dotenv');
+const dotenv = require('dotenv');
 
-// dotenv.config();
+// load in .env config
+dotenv.config();
 
 // postgres db connection 
 // pool takes the object below -pgConfig- as parameter
 const pgConfig = {
-    user: 'postgres',
-    database: 'winter-breeze',
+    user: process.env.DB_USER,
+    database: process.env.DB_NAME,
     max: 50,
-    password: 'root',
+    password: process.env.DB_PASSWORD,
     port: 5432
 };
 const pool = new pg.Pool(pgConfig)
