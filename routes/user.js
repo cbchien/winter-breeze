@@ -99,3 +99,69 @@ router.get('/users', async (req, res) => {
         return res.status(404).send({error: err.message})
     }
 })
+
+router.get('/topActiveUsers', async (req, res) => {
+    const page = req.query.page ? req.query.page : 0
+
+    // query input validation and offset setup
+    if (page < 0) {
+        res.status(400).send({
+            message: `Pagination number error. Please check your url query: ${page}`
+        })
+        return
+    } else if (isNaN(parseInt(page))){
+        res.status(400).send({
+            message: `Pagination input has to be digit starting from zero. Your current input: ${page}`,
+            error: `invalid input syntax for integer: "NaN"`
+        })
+        return
+    }
+    const entriesPerPage = 10
+    const offset = parseInt(page) * entriesPerPage
+
+    let userQuery = `
+    SELECT main.id, main.created_at, main.name, main.count, applied.listings
+    FROM (
+        SELECT u.id, u.created_at, u.name, COUNT(a.id) AS count
+        FROM applications a
+        INNER JOIN users u
+            ON u.id = a.user_id
+        GROUP BY u.id
+        ORDER BY count DESC 
+    ) main
+    INNER JOIN (
+        SELECT s.user_id, json_agg(l.name) AS listings
+        FROM (
+            SELECT 
+                id AS application_id, 
+                created_at AS application_created_at,
+                user_id,
+                listing_id,
+                ROW_NUMBER() OVER (PARTITION BY user_id
+                                   ORDER BY created_at DESC
+                                   ) AS rn
+            FROM applications
+          ) s
+        RIGHT JOIN listings l
+            ON l.id = s.listing_id
+        WHERE rn <= 3
+        GROUP BY s.user_id
+    ) applied
+        ON applied.user_id = main.id
+    OFFSET $1 LIMIT 5
+    `
+    // use db pool connection to query db
+    const userQueryResponse = await db.query(userQuery, [offset])
+        .catch(err => res.status(404).send({error: err.message}))
+
+    if (userQueryResponse.rows.length == 0) {
+        if (page != 0) {
+            return res.status(404).send({
+                error: `Data entries in db is less than ${offset}`, 
+                message: `Please change pagination number. Each page will display ${entriesPerPage} users`})
+        }
+        return res.status(404).send({message: 'no data'})
+    }
+
+    res.status(200).send(userQueryResponse.rows)
+})
