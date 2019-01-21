@@ -18,5 +18,3 @@ node_modules/
 # environment variables file
 .env
 docker-compose.yml
-
-README.md
