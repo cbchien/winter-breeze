@@ -1,0 +1,24 @@
+# The docker-compose DSL syntax format
+version: "3"
+
+# The containers we want to start and the images to start
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=winter-breeze
+    ports: ['5432:5432']
+
+  web: 
+    image: cbchien/winter-breeze
+    ports: 
+      - '80:3000'
+    
+    # wait until the database container is ready to run
+    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; npm start'
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://postgres:root@db:5432/winter-breeze
