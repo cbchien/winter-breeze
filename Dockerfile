@@ -1,9 +1,8 @@
 FROM node:8
 RUN mkdir /winter-breeze
-ADD . /winter-breeze
 WORKDIR /winter-breeze
-COPY package*.json ./
+COPY package.json /winter-breeze
 RUN npm install
-COPY . .
-EXPOSE 80
+COPY . /winter-breeze
+EXPOSE 80 3000
 CMD ["npm", "start"]
