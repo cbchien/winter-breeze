@@ -126,6 +126,9 @@ router.get('/topActiveUsers', async (req, res) => {
         FROM applications a
         INNER JOIN users u
             ON u.id = a.user_id
+        WHERE a.created_at BETWEEN
+            NOW()::DATE-EXTRACT(DOW FROM NOW())::INTEGER-7 
+            AND NOW()::DATE-EXTRACT(DOW from NOW())::INTEGER
         GROUP BY u.id
         ORDER BY count DESC 
     ) main
@@ -141,6 +144,9 @@ router.get('/topActiveUsers', async (req, res) => {
                                    ORDER BY created_at DESC
                                    ) AS rn
             FROM applications
+            WHERE created_at BETWEEN
+				NOW()::DATE-EXTRACT(DOW FROM NOW())::INTEGER-7 
+				AND NOW()::DATE-EXTRACT(DOW from NOW())::INTEGER
           ) s
         RIGHT JOIN listings l
             ON l.id = s.listing_id
